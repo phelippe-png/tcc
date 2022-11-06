@@ -1,0 +1,40 @@
+unit untModalValorPago;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls;
+
+type
+  TformModal = class(TForm)
+    Label1: TLabel;
+    Edit1: TEdit;
+    btnCancel: TPanel;
+    btnInsert: TPanel;
+    procedure btnCancelMouseEnter(Sender: TObject);
+    procedure btnCancelMouseLeave(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  formModal: TformModal;
+
+implementation
+
+{$R *.dfm}
+
+procedure TformModal.btnCancelMouseEnter(Sender: TObject);
+begin
+  btnCancel.Color := clBlack;
+end;
+
+procedure TformModal.btnCancelMouseLeave(Sender: TObject);
+begin
+  btnCancel.Color := clMaroon;
+end;
+
+end.

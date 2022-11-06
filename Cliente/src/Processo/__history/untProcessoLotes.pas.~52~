@@ -1,0 +1,135 @@
+unit untProcessoLotes;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, Vcl.Buttons, Vcl.Grids,
+  Vcl.DBGrids, Vcl.StdCtrls, Vcl.ExtCtrls, functions, Datasnap.DBClient,
+  untListarLotes, Vcl.Imaging.pngimage;
+
+type
+  TuntProcesso = class(TForm)
+    Panel1: TPanel;
+    pnlTitle: TPanel;
+    lblTitle: TLabel;
+    pnlContainer: TPanel;
+    DBGrid: TDBGrid;
+    pnlSearch: TPanel;
+    Label8: TLabel;
+    lblTotal: TLabel;
+    btnDelete: TPanel;
+    btnAdd: TPanel;
+    Panel2: TPanel;
+    btnExit: TPanel;
+    procedure FormCreate(Sender: TObject);
+    procedure btnExitClick(Sender: TObject);
+    procedure btnAddClick(Sender: TObject);
+  private
+    functions: TFunctions;
+    ClientDataSet: TClientDataSet;
+    DataSource: TDataSource;
+    untLotes: TformListarLotes;
+
+    procedure editDBGrid;
+    procedure calcularTotal;
+  public
+    { Public declarations }
+  end;
+
+var
+  untProcesso: TuntProcesso;
+
+implementation
+
+{$R *.dfm}
+
+procedure TuntProcesso.btnAddClick(Sender: TObject);
+var
+  I: Integer;
+  resultado: Double;
+begin
+  untLotes := TformListarLotes.Create(Self);
+  untLotes.WindowState := TWindowState.wsNormal;
+  untLotes.BorderStyle := bsSingle;
+  untLotes.Align := alNone;
+  untLotes.btnSelect.Visible := true;
+  untLotes.ShowModal;
+
+  if untLotes.lib then
+  begin
+    for I := 0 to untLotes.DBGrid.SelectedRows.Count - 1 do
+    begin
+      untLotes.DBGrid.DataSource.DataSet.Bookmark := untLotes.DBGrid.SelectedRows.Items[I];
+
+      resultado := untLotes.DBGrid.DataSource.DataSet.FieldByName('tempo_min').AsFloat * untLotes.DBGrid.DataSource.DataSet.FieldByName('quantidade').AsFloat;
+
+      ClientDataSet.Append;
+      ClientDataSet.FieldByName('op').AsInteger := untLotes.DBGrid.DataSource.DataSet.FieldByName('op').AsInteger;
+      ClientDataSet.FieldByName('descricao').AsString := untLotes.DBGrid.DataSource.DataSet.FieldByName('descricao').AsString;
+      ClientDataSet.FieldByName('empresa').AsString := untLotes.DBGrid.DataSource.DataSet.FieldByName('empresa').AsString;
+      ClientDataSet.FieldByName('quantidade').AsString := untLotes.DBGrid.DataSource.DataSet.FieldByName('quantidade').AsString;
+      ClientDataSet.FieldByName('tempo_unit').AsString := untLotes.DBGrid.DataSource.DataSet.FieldByName('tempo_min').AsString;
+      ClientDataSet.FieldByName('tempo_total').AsFloat := resultado;
+      ClientDataSet.Post;
+    end;
+
+    calcularTotal;
+  end;
+end;
+
+procedure TuntProcesso.btnExitClick(Sender: TObject);
+begin
+  Self.Close;
+end;
+
+procedure TuntProcesso.calcularTotal;
+var
+  I: integer;
+  resultadoTotal: currency;
+begin
+  resultadoTotal := 0;
+
+  ClientDataSet.First;
+  for I := 0 to ClientDataSet.RecordCount - 1 do
+  begin
+    resultadoTotal := resultadoTotal + ClientDataSet.FieldByName('tempo_total').AsCurrency;
+
+    ClientDataSet.Next;
+  end;
+
+  lblTotal.Caption := FormatFloat('###,##0.000', resultadoTotal);
+end;
+
+procedure TuntProcesso.editDBGrid;
+begin
+
+end;
+
+procedure TuntProcesso.FormCreate(Sender: TObject);
+begin
+  functions := TFunctions.Create;
+  DataSource := TDataSource.Create(Self);
+
+  ClientDataSet := TClientDataSet.Create(Self);
+  ClientDataSet.FieldDefs.Add('op', ftInteger);
+  ClientDataSet.FieldDefs.Add('descricao', ftString, 60);
+  ClientDataSet.FieldDefs.Add('empresa', ftString, 25);
+  ClientDataSet.FieldDefs.Add('quantidade', ftString, 25);
+  ClientDataSet.FieldDefs.Add('tempo_unit', ftString, 25);
+  ClientDataSet.FieldDefs.Add('tempo_total', ftString, 25);
+  ClientDataSet.CreateDataSet;
+
+  DataSource.DataSet := ClientDataSet;
+  DBGrid.DataSource := DataSource;
+
+  functions.DrawControl(btnAdd);
+  functions.DrawControl(btnDelete);
+  functions.DrawControl(btnExit);
+//  DBGrid1.BorderStyle := bsNone;
+  functions.DrawControl(DBGrid);
+
+  editDBGrid;
+end;
+
+end.

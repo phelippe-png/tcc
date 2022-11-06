@@ -1,0 +1,102 @@
+unit untListarLotes;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Data.DB,
+  Vcl.Buttons, Vcl.Grids, Vcl.DBGrids, FireDAC.Comp.Client, IdHTTP, DataSet.Serialize,
+  untCadastrarLote, Vcl.ComCtrls, System.JSON, functions, Datasnap.DBClient;
+
+type
+  TformListarLotes = class(TForm)
+    Panel1: TPanel;
+    pnlTitle: TPanel;
+    Label2: TLabel;
+    pnlContainer: TPanel;
+    Label1: TLabel;
+    DBGrid: TDBGrid;
+    edSearch: TEdit;
+    Panel6: TPanel;
+    Panel5: TPanel;
+    btnSelect: TPanel;
+    btnDelete: TPanel;
+    btnEdit: TPanel;
+    btnAdd: TPanel;
+    procedure btnExitClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure btnAddClick(Sender: TObject);
+    procedure SpeedButton1Click(Sender: TObject);
+    procedure btnSelectClick(Sender: TObject);
+  private
+    ClientDataSet: tclientdataset;
+    MemTable: TFDMemTable;
+    DataSource: TDataSource;
+    HTTP: TIdHTTP;
+    formCadastrarLote: TformCadastrarLote;
+    functions: TFunctions;
+  public
+    lib: boolean;
+  end;
+
+var
+  formListarLotes: TformListarLotes;
+
+implementation
+
+{$R *.dfm}
+
+procedure TformListarLotes.btnAddClick(Sender: TObject);
+begin
+  formCadastrarLote := TformCadastrarLote.Create(Self);
+  formCadastrarLote.showmodal;
+end;
+
+procedure TformListarLotes.btnExitClick(Sender: TObject);
+begin
+  Self.Close;
+end;
+
+procedure TformListarLotes.btnSelectClick(Sender: TObject);
+begin
+  lib := true;
+  Self.Close;
+end;
+
+procedure TformListarLotes.FormCreate(Sender: TObject);
+var
+  stream: TStream;
+begin
+  functions := TFunctions.create;
+  MemTable := TFDMemTable.Create(nil);
+  DataSource := TDataSource.Create(nil);
+  HTTP := TIdHTTP.Create(nil);
+  HTTP.Request.ContentType := 'application/json';
+
+  DataSource.DataSet := MemTable;
+  DBGrid.DataSource := DataSource;
+
+  MemTable.Close;
+
+  MemTable.LoadFromJSON(HTTP.Get('http://localhost:9000/lotes'));
+
+end;
+
+procedure TformListarLotes.SpeedButton1Click(Sender: TObject);
+var
+  Filtros: TJSONObject;
+  ConvertJSONToStream: TStream;
+begin
+//  Filtros := TJSONObject.Create;
+//
+//  Filtros.AddPair('op', edOP.Text);
+//  Filtros.AddPair('descricao', edDescLote.Text);
+//  Filtros.AddPair('empresa', edEmpresa.Text);
+//
+//  ConvertJSONToStream := TStringStream.Create(Filtros.ToJSON);
+//
+//  MemTable.Close;
+//  MemTable.LoadFromJSON(HTTP.Post('http://localhost:9000/lotes/procurar-filtros', ConvertJSONToStream));
+end;
+
+end.

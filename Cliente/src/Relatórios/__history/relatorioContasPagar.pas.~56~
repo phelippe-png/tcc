@@ -1,0 +1,49 @@
+unit relatorioContasPagar;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, RLReport, Vcl.Imaging.pngimage, System.JSON, FireDAC.Comp.Client,
+  Data.DB, Datasnap.DBClient, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
+  FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet, DataSet.Serialize,
+  FireDAC.UI.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Phys,
+  FireDAC.Phys.PG, FireDAC.Phys.PGDef, FireDAC.VCLUI.Wait, IdHTTP;
+
+type
+  TformRelatContasPagar = class(TForm)
+    RLReport1: TRLReport;
+    RLBand1: TRLBand;
+    rllTitle: TRLLabel;
+    RLDraw1: TRLDraw;
+    RLSystemInfo1: TRLSystemInfo;
+    RLSystemInfo2: TRLSystemInfo;
+    RLImage1: TRLImage;
+    RLBand2: TRLBand;
+    RLDraw2: TRLDraw;
+    DataSource1: TDataSource;
+    FDConnection1: TFDConnection;
+    RLBand3: TRLBand;
+    RLDBText1: TRLDBText;
+    ClientDataSet1: TClientDataSet;
+    ClientDataSet1descricao: TStringField;
+  private
+    http: TIdHTTP;
+  public
+    procedure exibirDados(json: string);
+  end;
+
+var
+  formRelatContasPagar: TformRelatContasPagar;
+
+implementation
+
+{$R *.dfm}
+
+procedure TformRelatContasPagar.exibirDados(json: string);
+begin
+  ClientDataSet1.LoadFromJSON(HTTP.Get('http://localhost:9000/contaspagar'));
+end;
+
+end.

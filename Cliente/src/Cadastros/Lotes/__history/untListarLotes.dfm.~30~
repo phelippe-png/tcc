@@ -1,0 +1,355 @@
+object formListarLotes: TformListarLotes
+  Left = 0
+  Top = 0
+  Align = alClient
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsNone
+  Caption = 'Form1'
+  ClientHeight = 503
+  ClientWidth = 754
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poScreenCenter
+  OnCreate = FormCreate
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 754
+    Height = 436
+    Align = alClient
+    BevelOuter = bvNone
+    Color = cl3DLight
+    Padding.Left = 15
+    Padding.Top = 15
+    Padding.Right = 15
+    ParentBackground = False
+    TabOrder = 0
+    object pnlGrid: TPanel
+      Left = 15
+      Top = 148
+      Width = 724
+      Height = 288
+      Align = alClient
+      BevelOuter = bvNone
+      Caption = 'pnlGrid'
+      Padding.Top = 15
+      TabOrder = 0
+      object DBGrid: TDBGrid
+        Left = 0
+        Top = 15
+        Width = 724
+        Height = 273
+        Align = alClient
+        BiDiMode = bdLeftToRight
+        BorderStyle = bsNone
+        DrawingStyle = gdsGradient
+        GradientStartColor = clCream
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Segoe UI'
+        Font.Style = []
+        ImeMode = imOpen
+        Options = [dgTitles, dgColLines, dgTabs, dgRowSelect, dgMultiSelect, dgTitleHotTrack]
+        ParentBiDiMode = False
+        ParentFont = False
+        TabOrder = 0
+        TitleFont.Charset = DEFAULT_CHARSET
+        TitleFont.Color = clWindowText
+        TitleFont.Height = -11
+        TitleFont.Name = 'Tahoma'
+        TitleFont.Style = []
+      end
+    end
+    object pnlSearch: TPanel
+      AlignWithMargins = True
+      Left = 18
+      Top = 18
+      Width = 718
+      Height = 127
+      Align = alTop
+      BevelOuter = bvNone
+      Color = clWhite
+      ParentBackground = False
+      TabOrder = 1
+      object Label6: TLabel
+        Left = 64
+        Top = 40
+        Width = 75
+        Height = 38
+        Caption = 'Lotes'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -29
+        Font.Name = 'Segoe UI Variable Display'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object Panel2: TPanel
+        Left = 71
+        Top = 0
+        Width = 647
+        Height = 127
+        Align = alRight
+        BevelOuter = bvNone
+        TabOrder = 0
+        object Label1: TLabel
+          Left = 80
+          Top = 64
+          Width = 92
+          Height = 13
+          Caption = 'Descri'#231#227'o do Lote'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Segoe UI'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object Label2: TLabel
+          Left = 80
+          Top = 13
+          Width = 15
+          Height = 13
+          Caption = 'OP'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Segoe UI'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object Label3: TLabel
+          Left = 208
+          Top = 13
+          Width = 83
+          Height = 13
+          Caption = 'Data de Entrada'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Segoe UI'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object Label4: TLabel
+          Left = 312
+          Top = 64
+          Width = 44
+          Height = 13
+          Caption = 'Empresa'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Segoe UI'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object Label5: TLabel
+          Left = 343
+          Top = 13
+          Width = 71
+          Height = 13
+          Caption = 'Data de Sa'#237'da'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Segoe UI'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object SpeedButton1: TSpeedButton
+          Left = 496
+          Top = 47
+          Width = 81
+          Height = 37
+          Caption = 'Filtrar'
+          OnClick = SpeedButton1Click
+        end
+        object DateTimePicker1: TDateTimePicker
+          Left = 208
+          Top = 30
+          Width = 119
+          Height = 23
+          Date = 44811.000000000000000000
+          Time = 0.739078680555394400
+          TabOrder = 0
+        end
+        object DateTimePicker2: TDateTimePicker
+          Left = 343
+          Top = 30
+          Width = 119
+          Height = 23
+          Date = 44811.000000000000000000
+          Time = 0.739078680555394400
+          TabOrder = 1
+        end
+        object edDescLote: TEdit
+          Left = 80
+          Top = 81
+          Width = 209
+          Height = 23
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+          TabOrder = 2
+        end
+        object edEmpresa: TEdit
+          Left = 311
+          Top = 81
+          Width = 151
+          Height = 23
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+          TabOrder = 3
+        end
+        object edOP: TEdit
+          Left = 80
+          Top = 30
+          Width = 113
+          Height = 23
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+          TabOrder = 4
+        end
+      end
+    end
+  end
+  object Panel4: TPanel
+    Left = 0
+    Top = 436
+    Width = 754
+    Height = 67
+    Align = alBottom
+    BevelOuter = bvNone
+    Color = cl3DLight
+    Padding.Right = 35
+    ParentBackground = False
+    TabOrder = 1
+    DesignSize = (
+      754
+      67)
+    object btnEdit: TPanel
+      Left = 518
+      Top = 15
+      Width = 93
+      Height = 39
+      Cursor = crHandPoint
+      Anchors = [akTop, akRight]
+      BevelOuter = bvNone
+      Caption = 'Editar'
+      Color = 7893767
+      DragCursor = crDefault
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 0
+    end
+    object btnDelete: TPanel
+      Left = 411
+      Top = 15
+      Width = 93
+      Height = 39
+      Cursor = crHandPoint
+      Anchors = [akTop, akRight]
+      BevelOuter = bvNone
+      Caption = 'Excluir'
+      Color = clMaroon
+      DragCursor = crDefault
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 1
+    end
+    object btnAdd: TPanel
+      Left = 626
+      Top = 15
+      Width = 93
+      Height = 39
+      Cursor = crHandPoint
+      Anchors = [akTop, akRight]
+      BevelOuter = bvNone
+      Caption = 'Adicionar'
+      Color = 620302
+      DragCursor = crDefault
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 2
+      OnClick = btnAddClick
+    end
+    object btnExit: TPanel
+      Left = 35
+      Top = 15
+      Width = 93
+      Height = 39
+      Cursor = crHandPoint
+      BevelOuter = bvNone
+      Caption = 'Sair'
+      Color = 3553279
+      DragCursor = crDefault
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 3
+      OnClick = btnExitClick
+    end
+    object btnSelect: TPanel
+      Left = 303
+      Top = 15
+      Width = 93
+      Height = 39
+      Cursor = crHandPoint
+      Anchors = [akTop, akRight]
+      BevelOuter = bvNone
+      Caption = 'Selecionar'
+      Color = clOlive
+      DragCursor = crDefault
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 4
+      Visible = False
+      OnClick = btnSelectClick
+    end
+  end
+end

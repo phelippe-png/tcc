@@ -1,0 +1,150 @@
+unit untCadastrarOrdemProducao;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Data.DB, Vcl.Grids,
+  Vcl.DBGrids, Vcl.StdCtrls, Vcl.Buttons, untListarEmpresas, Vcl.ComCtrls,
+  System.ImageList, Vcl.ImgList, untListarLotes, Datasnap.DBClient, functions,
+  Vcl.Imaging.pngimage;
+
+type
+  TformCadastrarOrdemProducao = class(TForm)
+    Panel2: TPanel;
+    Panel3: TPanel;
+    DBGrid1: TDBGrid;
+    edDataInicio: TEdit;
+    Label1: TLabel;
+    Label2: TLabel;
+    Panel1: TPanel;
+    edDataFinal: TEdit;
+    Label3: TLabel;
+    pickerInicio: TDateTimePicker;
+    pickerFinal: TDateTimePicker;
+    btnCancel: TPanel;
+    btnSave: TPanel;
+    Label7: TLabel;
+    lblRazao: TLabel;
+    lblFantasia: TLabel;
+    Label6: TLabel;
+    Panel4: TPanel;
+    SpeedButton2: TSpeedButton;
+    SpeedButton3: TSpeedButton;
+    ImageList1: TImageList;
+    Label4: TLabel;
+    lblQuantidade: TLabel;
+    Label8: TLabel;
+    lblValorTotal: TLabel;
+    lblTempo: TLabel;
+    Label11: TLabel;
+    Image1: TImage;
+    cbStatus: TComboBox;
+    Label12: TLabel;
+    procedure SpeedButton2Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure pickerInicioChange(Sender: TObject);
+    procedure pickerFinalChange(Sender: TObject);
+    procedure Image1Click(Sender: TObject);
+  private
+    DataSource: TDataSource;
+    ClientDataSet: TClientDataSet;
+
+    functions: TFunctions;
+    untEmpresas: TformListarEmpresas;
+    untLotes: TformListarLotes;
+  public
+    { Public declarations }
+  end;
+
+var
+  formCadastrarOrdemProducao: TformCadastrarOrdemProducao;
+
+implementation
+
+{$R *.dfm}
+
+procedure TformCadastrarOrdemProducao.Image1Click(Sender: TObject);
+begin
+  untEmpresas := TformListarEmpresas.Create(Self);
+  untEmpresas.mudarEstadoDBGrid := true;
+  untEmpresas.BorderStyle := bsSingle;
+  untEmpresas.Align := alNone;
+  untEmpresas.ShowModal;
+
+  if untEmpresas.selecionado then
+  begin
+    lblRazao.Caption := untEmpresas.DBGrid.DataSource.DataSet.FieldByName('razaosocial').AsString;
+    lblFantasia.Caption := untEmpresas.DBGrid.DataSource.DataSet.FieldByName('nomefantasia').AsString;
+  end;
+end;
+
+procedure TformCadastrarOrdemProducao.pickerFinalChange(Sender: TObject);
+begin
+  edDataFinal.Text := DateToStr(pickerFinal.DateTime);
+end;
+
+procedure TformCadastrarOrdemProducao.pickerInicioChange(Sender: TObject);
+begin
+  edDataInicio.Text := DateToStr(pickerInicio.DateTime);
+end;
+
+procedure TformCadastrarOrdemProducao.FormCreate(Sender: TObject);
+begin
+  ClientDataSet := TClientDataSet.Create(Self);
+  ClientDataSet.FieldDefs.Add('id', ftInteger);
+  ClientDataSet.FieldDefs.Add('op', ftInteger);
+  ClientDataSet.FieldDefs.Add('descricao', ftString, 40);
+  ClientDataSet.FieldDefs.Add('quantidade', ftInteger);
+  ClientDataSet.FieldDefs.Add('valor_unit', ftCurrency);
+  ClientDataSet.FieldDefs.Add('valor_total', ftCurrency);
+  ClientDataSet.FieldDefs.Add('tempo_min', ftFloat);
+  ClientDataSet.CreateDataSet;
+
+  DataSource := TDataSource.Create(Self);
+  DataSource.DataSet := ClientDataSet;
+
+  DBGrid1.DataSource := DataSource;
+
+  DBGrid1.Columns.Items[0].Title.Caption := 'ID';
+  DBGrid1.Columns.Items[1].Title.Caption := 'OP';
+  DBGrid1.Columns.Items[2].Title.Caption := 'Descrição';
+  DBGrid1.Columns.Items[3].Title.Caption := 'Quantidade';
+  DBGrid1.Columns.Items[4].Title.Caption := 'Valor Unitário';
+  DBGrid1.Columns.Items[5].Title.Caption := 'Valor Total';
+  DBGrid1.Columns.Items[6].Title.Caption := 'Tempo Minutos';
+  functions.FitGrid(DBGrid1);
+end;
+
+procedure TformCadastrarOrdemProducao.SpeedButton2Click(Sender: TObject);
+var
+  I: Integer;
+begin
+  untLotes := TformListarLotes.Create(Self);
+  untLotes.BorderStyle := bsSingle;
+  untLotes.Align := alNone;
+  untLotes.btnSelect.Visible := true;
+  untLotes.ShowModal;
+
+  if untLotes.lib then
+  begin
+    for I := 0 to untLotes.DBGrid.SelectedRows.Count - 1 do
+    begin
+      untLotes.DBGrid.DataSource.DataSet.Bookmark := untLotes.DBGrid.SelectedRows.Items[I];
+
+      ClientDataSet.Append;
+      ClientDataSet.FieldByName('id').AsInteger := untLotes.DBGrid.DataSource.DataSet.FieldByName('id').AsInteger;
+      ClientDataSet.FieldByName('op').AsInteger := untLotes.DBGrid.DataSource.DataSet.FieldByName('op').AsInteger;
+      ClientDataSet.FieldByName('descricao').AsString := untLotes.DBGrid.DataSource.DataSet.FieldByName('descricao').AsString;
+      ClientDataSet.FieldByName('quantidade').AsInteger := untLotes.DBGrid.DataSource.DataSet.FieldByName('quantidade').AsInteger;
+      ClientDataSet.FieldByName('valor_unit').AsCurrency := untLotes.DBGrid.DataSource.DataSet.FieldByName('valor_unit').AsCurrency;
+      ClientDataSet.FieldByName('valor_total').AsCurrency := untLotes.DBGrid.DataSource.DataSet.FieldByName('valor_total').AsCurrency;
+      ClientDataSet.FieldByName('tempo_min').AsFloat := untLotes.DBGrid.DataSource.DataSet.FieldByName('tempo_min').AsFloat;
+      ClientDataSet.Post;
+    end;
+
+    functions.FitGrid(DBGrid1);
+  end;
+end;
+
+end.

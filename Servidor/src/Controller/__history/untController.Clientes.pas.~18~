@@ -1,0 +1,51 @@
+unit untController.Clientes;
+
+interface
+
+uses
+  System.SysUtils, FireDAC.Comp.Client, untConnection, System.JSON, DataSet.Serialize,
+  System.Generics.Collections, FireDAC.DApt, FireDAC.Phys,
+  FireDAC.Phys.MySQL, FireDAC.Stan.Def, FireDAC.Stan.Async, FireDAC.Phys.Intf,
+  FireDAC.Stan.Pool, FireDAC.VCLUI.Wait, FireDAC.UI.Intf, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Error;
+
+type
+  TClientes = class(TConnection)
+  private
+    FDQuery: TFDQuery;
+    FIndexConnection: Integer;
+  public
+    function GetDadosClientes: TFDQuery;
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+implementation
+
+constructor TClientes.Create;
+begin
+  FDQuery := TFDQuery.Create(nil);
+  FIndexConnection := Connect;
+  FDQuery.Connection := ConnectionList.Items[FIndexConnection];
+
+  inherited;
+end;
+
+destructor TClientes.Destroy;
+begin
+  Disconnect(FIndexConnection);
+
+  inherited;
+end;
+
+function TClientes.GetDadosClientes: TFDQuery;
+begin
+  FDQuery.Close;
+  FDQuery.SQL.Clear;
+  FDQuery.SQL.Add('select * from tab_clientes');
+  FDQuery.Open;
+
+  Result := FDQuery;
+end;
+
+end.

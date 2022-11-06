@@ -1,0 +1,175 @@
+object formListarProducoes: TformListarProducoes
+  Left = 0
+  Top = 0
+  Caption = 'Form3'
+  ClientHeight = 433
+  ClientWidth = 698
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 698
+    Height = 433
+    Align = alClient
+    BevelOuter = bvNone
+    Color = clMenu
+    Padding.Left = 10
+    Padding.Right = 10
+    Padding.Bottom = 10
+    ParentBackground = False
+    TabOrder = 0
+    DesignSize = (
+      698
+      433)
+    object pnlTitle: TPanel
+      AlignWithMargins = True
+      Left = 13
+      Top = 3
+      Width = 672
+      Height = 38
+      Align = alTop
+      BevelOuter = bvNone
+      Color = clMenu
+      ParentBackground = False
+      TabOrder = 0
+      DesignSize = (
+        672
+        38)
+      object lblTitle: TLabel
+        Left = 0
+        Top = 10
+        Width = 152
+        Height = 21
+        Caption = 'Ordem de Produ'#231#227'o'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -16
+        Font.Name = 'Segoe UI'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object btnAdd: TPanel
+        Left = 587
+        Top = 8
+        Width = 87
+        Height = 30
+        Cursor = crHandPoint
+        Anchors = [akTop, akRight]
+        BevelOuter = bvNone
+        Caption = 'Adicionar'
+        Color = 620302
+        DragCursor = crDefault
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWhite
+        Font.Height = -13
+        Font.Name = 'Product Sans'
+        Font.Style = [fsBold]
+        ParentBackground = False
+        ParentFont = False
+        TabOrder = 0
+        OnClick = btnAddClick
+      end
+      object Panel2: TPanel
+        Left = 401
+        Top = 8
+        Width = 87
+        Height = 30
+        Cursor = crHandPoint
+        Anchors = [akTop, akRight]
+        BevelOuter = bvNone
+        Caption = 'Excluir'
+        Color = clMaroon
+        DragCursor = crDefault
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWhite
+        Font.Height = -13
+        Font.Name = 'Product Sans'
+        Font.Style = [fsBold]
+        ParentBackground = False
+        ParentFont = False
+        TabOrder = 1
+      end
+      object Panel3: TPanel
+        Left = 494
+        Top = 8
+        Width = 87
+        Height = 30
+        Cursor = crHandPoint
+        Anchors = [akTop, akRight]
+        BevelOuter = bvNone
+        Caption = 'Editar'
+        Color = clTeal
+        DragCursor = crDefault
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWhite
+        Font.Height = -13
+        Font.Name = 'Product Sans'
+        Font.Style = [fsBold]
+        ParentBackground = False
+        ParentFont = False
+        TabOrder = 2
+      end
+    end
+    object pnlContainer: TPanel
+      AlignWithMargins = True
+      Left = 13
+      Top = 47
+      Width = 672
+      Height = 378
+      Anchors = [akLeft, akTop, akRight, akBottom]
+      BevelOuter = bvNone
+      Color = clBtnHighlight
+      ParentBackground = False
+      TabOrder = 1
+      DesignSize = (
+        672
+        378)
+      object DBGrid: TDBGrid
+        Left = 0
+        Top = 0
+        Width = 672
+        Height = 378
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        BorderStyle = bsNone
+        Color = clBtnHighlight
+        Ctl3D = True
+        DrawingStyle = gdsGradient
+        GradientEndColor = clMedGray
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Segoe UI'
+        Font.Style = []
+        Options = [dgTitles, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgMultiSelect, dgTitleHotTrack]
+        ParentCtl3D = False
+        ParentFont = False
+        TabOrder = 0
+        TitleFont.Charset = DEFAULT_CHARSET
+        TitleFont.Color = clWindowText
+        TitleFont.Height = -11
+        TitleFont.Name = 'Tahoma'
+        TitleFont.Style = []
+      end
+      object pnlSearch: TPanel
+        AlignWithMargins = True
+        Left = -2
+        Top = 0
+        Width = 677
+        Height = 2
+        Anchors = [akLeft, akTop, akRight]
+        BevelOuter = bvNone
+        Color = 4210688
+        ParentBackground = False
+        TabOrder = 1
+      end
+    end
+  end
+end

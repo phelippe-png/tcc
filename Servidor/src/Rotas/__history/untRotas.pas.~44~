@@ -1,0 +1,64 @@
+unit untRotas;
+
+interface
+
+uses
+  System.SysUtils, Horse, untController, System.JSON,
+  DataSet.Serialize, System.Generics.Collections, FireDAC.DApt,
+  FireDAC.Comp.Client, FireDAC.Phys,
+  FireDAC.Phys.PG, FireDAC.Stan.Def, FireDAC.Stan.Async, FireDAC.Phys.Intf,
+  FireDAC.Stan.Pool, FireDAC.VCLUI.Wait, FireDAC.UI.Intf, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Error;
+
+var
+  Controller: TController;
+  procedure Control(Horse: THorse);
+  procedure InsertEmpresas(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+  procedure InsertLotes(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+
+  procedure Get(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+
+  procedure updateDados(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+
+implementation
+
+procedure Control(Horse: THorse);
+begin
+  Horse.Post('/empresas/inserir', InsertEmpresas);
+  Horse.Post('/lotes/inserir', InsertLotes);
+  Horse.Put('/empresas/atualizar/:id', updateDados);
+
+  Horse.Get('/empresas', Get);
+//  Horse.Get('/empresas', Get);
+//  Horse.Get('/empresas', Get);
+end;
+
+procedure Get(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+begin
+  Controller := TController.Create;
+  Res.Send<TJSONArray>(Controller.getDados('tab_empresas').ToJSONArray);
+  Controller.Free;
+end;
+
+procedure InsertEmpresas(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+begin
+  Controller := TController.Create;
+  Controller.setDados(Req.Body<TJSONObject>, 'tab_empresas');
+  Controller.Free;
+end;
+
+procedure InsertLotes(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+begin
+  Controller := TController.Create;
+  Controller.setDados(Req.Body<TJSONObject>, 'teste');
+  Controller.Free;
+end;
+
+procedure updateDados(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+begin
+  Controller := TController.Create;
+  Controller.updateDados(Req.Body<TJSONObject> as TJSONObject, Req.Params['id'].ToInteger, 'tab_clientes');
+  Controller.Free;
+end;
+
+end.

@@ -1,0 +1,101 @@
+unit untProducaoClass;
+
+interface
+
+uses
+  IdHTTP, System.Classes, System.JSON, System.SysUtils;
+
+type
+  TProducao = class
+  private
+    http: TIdHTTP;
+    dadosProducao: TJSONObject;
+    stream: TStream;
+    FidEmpresa: integer;
+    Fempresa: string;
+    FdataInicio: TDate;
+    FdataFinal: TDate;
+    FquantidadeTotal: integer;
+    FquantidadeProduzir: integer;
+    FvalorTotal: Currency;
+    FtempoTotal: Double;
+    FidProducao: integer;
+    FidLote: integer;
+    Ffinalizado: boolean;
+    FidCorpoProducao: integer;
+  public
+    modo: string;
+    property idEmpresa: integer read FidEmpresa write FidEmpresa;
+    property empresa: string read Fempresa write Fempresa;
+    property dataInicio: TDate read FdataInicio write FdataInicio;
+    property dataFinal: TDate read FdataFinal write FdataFinal;
+    property quantidadeTotal: integer read FquantidadeTotal write FquantidadeTotal;
+    property quantidadeProduzir: integer read FquantidadeProduzir write FquantidadeProduzir;
+    property valorTotal: Currency read FvalorTotal write FvalorTotal;
+    property tempoTotal: Double read FtempoTotal write FtempoTotal;
+    property idProducao: integer read FidProducao write FidProducao;
+    property idCorpoProducao: integer read FidCorpoProducao write FidCorpoProducao;
+    property idLote: integer read FidLote write FidLote;
+    property finalizado: boolean read Ffinalizado write Ffinalizado;
+
+    constructor Create;
+    procedure enviarDadosProducao;
+    procedure enviarDadosCorpoProducao;
+  end;
+
+implementation
+
+constructor TProducao.Create;
+begin
+  http := TIdHTTP.Create(nil);
+end;
+
+procedure TProducao.enviarDadosCorpoProducao;
+begin
+  dadosProducao := TJSONObject.Create;
+  dadosProducao.AddPair('id_lote', FidLote.ToString);
+  dadosProducao.AddPair('finalizado', BoolToStr(Ffinalizado));
+
+  stream := TStringStream.Create(dadosProducao.ToJSON);
+  http.Request.CustomHeaders.AddValue('tabelaBanco', 'tab_controleproducao_corpo');
+  http.Request.ContentType := 'application/json';
+
+  if modo = 'adicionar' then
+    http.Post('http://localhost:9000/producao', stream);
+
+  if modo = 'editar' then
+  begin
+    http.Request.CustomHeaders.AddValue('id', IntToStr(FidCorpoProducao));
+    http.Put('http://localhost:9000/producao', stream);
+  end;
+
+  if modo = 'excluir' then
+  begin
+    http.Request.CustomHeaders.AddValue('id', IntToStr(FidCorpoProducao));
+    http.Delete('http://localhost:9000/producao');
+  end;
+end;
+
+procedure TProducao.enviarDadosProducao;
+begin
+  dadosProducao := TJSONObject.Create;
+  dadosProducao.AddPair('id_empresa', FidEmpresa.ToString);
+  dadosProducao.AddPair('empresa', Fempresa);
+  dadosProducao.AddPair('data_inicio', DateToStr(FdataInicio));
+  dadosProducao.AddPair('data_final', DateToStr(FdataFinal));
+  dadosProducao.AddPair('quantidade_total', FquantidadeTotal.ToString);
+  dadosProducao.AddPair('quantidade_produzir', FquantidadeProduzir.ToString);
+  dadosProducao.AddPair('valor_total', CurrToStr(FvalorTotal).Replace(',', '.'));
+  dadosProducao.AddPair('tempo_total', FloatToStr(FtempoTotal).Replace(',', '.'));
+
+  stream := TStringStream.Create(dadosProducao.ToJSON);
+  http.Request.CustomHeaders.AddValue('tabelaBanco', 'tab_controleproducao');
+  http.Request.ContentType := 'application/json';
+
+  if modo = 'editar' then
+    http.Put('http://localhost:9000/producao', stream)
+  else if modo = 'adicionar' then
+    http.Post('http://localhost:9000/producao', stream);
+end;
+
+end.

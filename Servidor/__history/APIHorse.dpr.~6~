@@ -1,0 +1,23 @@
+program APIHorse;
+
+{$APPTYPE CONSOLE}
+
+{$R *.res}
+
+uses
+  System.SysUtils,
+  Horse,
+  untConnection in 'src\Connection\untConnection.pas',
+  untRotas in 'src\Rotas\untRotas.pas',
+  untController.Clientes in 'src\Controller\untController.Clientes.pas';
+
+var
+  System: THorse;
+
+begin
+  System := THorse.Create;
+
+  untRotas.Control(System);
+
+  System.Listen(9000);
+end.

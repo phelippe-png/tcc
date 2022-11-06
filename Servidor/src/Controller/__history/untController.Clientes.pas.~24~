@@ -1,0 +1,122 @@
+unit untController.Clientes;
+
+interface
+
+uses
+  System.SysUtils, FireDAC.Comp.Client, untConnection, System.JSON, DataSet.Serialize,
+  System.Generics.Collections, FireDAC.DApt, FireDAC.Phys,
+  FireDAC.Phys.MySQL, FireDAC.Stan.Def, FireDAC.Stan.Async, FireDAC.Phys.Intf,
+  FireDAC.Stan.Pool, FireDAC.VCLUI.Wait, FireDAC.UI.Intf, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Error;
+
+type
+  TClientes = class(TConnection)
+  private
+    FDQuery: TFDQuery;
+    FIndexConnection: Integer;
+  public
+    function getDadosEmpresas: TFDQuery;
+    procedure setDadosEmpresa(DadosEmpresa: TJSONObject; tabela: string);
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+implementation
+
+constructor TClientes.Create;
+begin
+  FDQuery := TFDQuery.Create(nil);
+  FIndexConnection := Connect;
+  FDQuery.Connection := ConnectionList.Items[FIndexConnection];
+
+  inherited;
+end;
+
+destructor TClientes.Destroy;
+begin
+  Disconnect(FIndexConnection);
+
+  inherited;
+end;
+
+function TClientes.getDadosEmpresas: TFDQuery;
+begin
+  FDQuery.Close;
+  FDQuery.SQL.Clear;
+  FDQuery.SQL.Add('select * from tab_clientes');
+  FDQuery.Open;
+
+  Result := FDQuery;
+end;
+
+procedure TClientes.setDadosEmpresa(DadosEmpresa: TJSONObject; tabela: string);
+var
+  I: integer;
+  s: string;
+  par: TJSONPair;
+begin
+  FDQuery.Close;
+  FDQuery.SQL.Clear;
+  FDQuery.SQL.Add('insert into' + tabela + '(');
+
+  for I := 0 to DadosEmpresa.Count - 1 do
+  begin
+    FDQuery.SQL.Add(DadosEmpresa.Get(I).JsonString.Value);
+
+    if I < DadosEmpresa.Count - 1 then
+      FDQuery.SQL.Add(', ');
+
+    if I = DadosEmpresa.Count - 1 then
+    begin
+      FDQuery.SQL.Add(') values (');
+    end;
+  end;
+
+  for I := 0 to DadosEmpresa.Count - 1 do
+  begin
+    FDQuery.SQL.Add(':' + DadosEmpresa.Get(I).JsonString.Value);
+
+    if I < DadosEmpresa.Count - 1 then
+      FDQuery.SQL.Add(', ');
+
+    if I = DadosEmpresa.Count - 1 then
+    begin
+      FDQuery.SQL.Add(')');
+    end;
+  end;
+
+  for I := 0 to DadosEmpresa.Count - 1 do
+  begin
+    if StrToIntDef(DadosEmpresa.Get(I).JsonString.Value, 0) = 0 then
+    begin
+      FDQuery.ParamByName(DadosEmpresa.Get(I).JsonString.Value).AsString := DadosEmpresa.Get(i).JsonValue.Value;
+    end
+    else
+      FDQuery.ParamByName(DadosEmpresa.Get(I).JsonString.Value).AsInteger := DadosEmpresa.Get(i).JsonValue.Value.ToInteger;
+  end;
+
+
+
+
+
+
+//  FDQuery.Close;
+//  FDQuery.SQL.Clear;
+//  FDQuery.SQL.Add('insert into tab_clientes(razaosocial, nomefantasia, cpf_cnpj, ');
+//  FDQuery.SQL.Add('insc_estadual, telefone, cep, logradouro, numero, bairro, cidade, uf) ');
+//  FDQuery.SQL.Add('values (:razao, :fantasia, :cpf_cnpj, :ie, :telefone, :cep, ');
+//  FDQuery.SQL.Add(':logradouro, :numero, :bairro, :cidade, :uf)');
+//  FDQuery.ParamByName('razao').AsString := ;
+//  FDQuery.ParamByName('fantasia').AsString;
+//  FDQuery.ParamByName('cpf_cnpj').AsString;
+//  FDQuery.ParamByName('ie').AsString;
+//  FDQuery.ParamByName('telefone').AsString;
+//  FDQuery.ParamByName('cep').AsString;
+//  FDQuery.ParamByName('logradouro').AsString;
+//  FDQuery.ParamByName('numero').AsInteger;
+//  FDQuery.ParamByName('bairro').AsString;
+//  FDQuery.ParamByName('cidade').AsString;
+//  FDQuery.ParamByName('uf').AsString;
+end;
+
+end.

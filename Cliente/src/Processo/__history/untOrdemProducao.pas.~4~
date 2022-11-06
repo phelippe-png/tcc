@@ -1,0 +1,41 @@
+unit untOrdemProducao;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, Vcl.Grids, Vcl.DBGrids,
+  Vcl.StdCtrls, Vcl.ExtCtrls, untCadastrarOrdemProducao;
+
+type
+  TformListarProducoes = class(TForm)
+    Panel1: TPanel;
+    pnlTitle: TPanel;
+    lblTitle: TLabel;
+    btnAdd: TPanel;
+    pnlContainer: TPanel;
+    DBGrid: TDBGrid;
+    pnlSearch: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    procedure btnAddClick(Sender: TObject);
+  private
+    formCadastrar: TformCadastrarProducao;
+  public
+    { Public declarations }
+  end;
+
+var
+  formListarProducoes: TformListarProducoes;
+
+implementation
+
+{$R *.dfm}
+
+procedure TformListarProducoes.btnAddClick(Sender: TObject);
+begin
+  formCadastrar := TformCadastrarProducao.Create(Self);
+  formCadastrar.ShowModal;
+end;
+
+end.

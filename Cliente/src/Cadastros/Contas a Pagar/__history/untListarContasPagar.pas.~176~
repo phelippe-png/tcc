@@ -1,0 +1,216 @@
+unit untListarContasPagar;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, Vcl.StdCtrls, Vcl.Grids,
+  Vcl.DBGrids, Vcl.ExtCtrls, untContasPagar, Vcl.ComCtrls, FireDAC.Comp.Client, DataSet.Serialize,
+  IdHTTP, functions, System.DateUtils, Datasnap.DBClient, relatorioContasPagar,
+  System.JSON, untModalValorPago;
+
+type
+  THackDBGrid = class(TCustomDBGrid)
+
+  end;
+
+  TformContasPagar = class(TForm)
+    Panel1: TPanel;
+    pnlTitle: TPanel;
+    Label2: TLabel;
+    pnlContainer: TPanel;
+    pnlSearch: TPanel;
+    Panel5: TPanel;
+    btnDelete: TPanel;
+    btnEdit: TPanel;
+    btnSave: TPanel;
+    Label3: TLabel;
+    edDescricao: TEdit;
+    Label1: TLabel;
+    Label4: TLabel;
+    edValorTotal: TEdit;
+    edDataVenc: TDateTimePicker;
+    Label6: TLabel;
+    Label7: TLabel;
+    Label9: TLabel;
+    pnlValues: TPanel;
+    lblValorTotal: TLabel;
+    lblTotalPagar: TLabel;
+    Label8: TLabel;
+    lblTotalPago: TLabel;
+    Panel2: TPanel;
+    cbFiltroMeses: TComboBox;
+    Label13: TLabel;
+    btnGerarRelatorio: TPanel;
+    DBGrid: TDBGrid;
+    procedure btnSaveClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure cbFiltroMesesChange(Sender: TObject);
+    procedure btnGerarRelatorioClick(Sender: TObject);
+    procedure DBGridDblClick(Sender: TObject);
+    procedure DBGridDrawColumnCell(Sender: TObject; const Rect: TRect;
+      DataCol: Integer; Column: TColumn; State: TGridDrawState);
+  private
+    HTTP: TIdHTTP;
+    untContasPagar: TContasPagar;
+    functions: TFunctions;
+    formRelatContasPagar: TformRelatContasPagar;
+
+    procedure SQL;
+    procedure calcularTotais;
+  public
+    ClientDataSet: TClientDataSet;
+    DataSource: TDataSource;
+  end;
+
+var
+  formContasPagar: TformContasPagar;
+
+implementation
+
+{$R *.dfm}
+
+procedure TformContasPagar.btnGerarRelatorioClick(Sender: TObject);
+var
+  relatorioContasPagar: TformRelatContasPagar;
+begin
+  relatorioContasPagar := TformRelatContasPagar.Create(self);
+  relatorioContasPagar.exibirDados(DataSource, ClientDataSet);
+
+  relatorioContasPagar.RLReport1.Preview;
+end;
+
+procedure TformContasPagar.btnSaveClick(Sender: TObject);
+begin
+  untContasPagar := TContasPagar.Create;
+
+  untContasPagar.descricao := edDescricao.Text;
+  untContasPagar.dataVenc := edDataVenc.Date;
+  untContasPagar.valorTotal := StrToCurr(edValorTotal.Text);
+//  untContasPagar.valorPago := StrToCurr(edValorPago.Text);
+
+  label6.Caption := untContasPagar.cadastrarConta;
+
+  SQL;
+  calcularTotais;
+end;
+
+procedure TformContasPagar.calcularTotais;
+var
+  resultadoValorTotal, resultadoValorPago, resultadoTotalPagar: currency;
+  I: Integer;
+begin
+  resultadoValorTotal := 0;
+  resultadoValorPago := 0;
+  resultadoTotalPagar := 0;
+
+  ClientDataSet.First;
+  for I := 0 to Pred(ClientDataSet.RecordCount) do
+  begin
+    ClientDataSet.Edit;
+    ClientDataSet.FieldByName('total_pagar').AsCurrency := ClientDataSet.FieldByName('valor_total').AsCurrency -
+    ClientDataSet.FieldByName('valor_pago').AsCurrency;
+    ClientDataSet.Post;
+
+    resultadoValorTotal := resultadoValorTotal + ClientDataSet.FieldByName('valor_total').AsCurrency;
+    resultadoValorPago := resultadoValorPago + ClientDataSet.FieldByName('valor_pago').AsCurrency;
+    resultadoTotalPagar := resultadoTotalPagar + ClientDataSet.FieldByName('total_pagar').AsCurrency;
+
+    ClientDataSet.Next;
+  end;
+
+  lblValorTotal.Caption := FormatCurr('###,###,##0.00', resultadoValorTotal);
+  lblTotalPago.Caption := FormatCurr('###,###,##0.00', resultadoValorPago);
+  lblTotalPagar.Caption := FormatCurr('###,###,##0.00', resultadoTotalPagar);
+end;
+
+procedure TformContasPagar.cbFiltroMesesChange(Sender: TObject);
+begin
+  DBGrid.DataSource.DataSet.Filtered := false;
+  DBGrid.DataSource.DataSet.Filter := 'month(data_venc) = ' + IntToStr(cbFiltroMeses.ItemIndex + 1);
+  DBGrid.DataSource.DataSet.Filtered := true;
+end;
+
+procedure TformContasPagar.DBGridDblClick(Sender: TObject);
+var
+  modal: TformModal;
+begin
+  modal := TformModal.Create(Self);
+  modal.ShowModal;
+
+  if modal.lib then
+  begin
+    untContasPagar := TContasPagar.Create;
+    untContasPagar.id := dbgrid.datasource.dataset.FieldByName('id').AsInteger;
+    untContasPagar.valorPago := StrToCurr(modal.edValor.Text);
+    untContasPagar.inserirValorPago;
+
+    SQL;
+    calcularTotais;
+  end;
+end;
+
+procedure TformContasPagar.DBGridDrawColumnCell(Sender: TObject;
+  const Rect: TRect; DataCol: Integer; Column: TColumn; State: TGridDrawState);
+begin
+  if (DBGrid.DataSource.DataSet.FieldByName('data_venc').AsDateTime < now) and (DataCol = 1) then
+  begin
+    DBGrid.Canvas.Brush.Color := $002D2DFF;
+
+  end;
+
+  DBGrid.DefaultDrawColumnCell(Rect, DataCol, Column, State);
+end;
+
+procedure TformContasPagar.FormCreate(Sender: TObject);
+begin
+  HTTP := TIdHTTP.Create(nil);
+  DataSource := TDataSource.Create(self);
+
+  ClientDataSet := TClientDataSet.Create(self);
+  ClientDataSet.FieldDefs.Add('id', ftInteger);
+  ClientDataSet.FieldDefs.Add('situacao', ftString, 10);
+  ClientDataSet.FieldDefs.Add('descricao', ftString, 60);
+  ClientDataSet.FieldDefs.Add('data_venc', ftDate);
+  ClientDataSet.FieldDefs.Add('valor_total', ftCurrency);
+  ClientDataSet.FieldDefs.Add('valor_pago', ftCurrency);
+  ClientDataSet.FieldDefs.Add('total_pagar', ftCurrency);
+  ClientDataSet.FieldDefs.Add('pago', ftBoolean);
+  ClientDataSet.CreateDataSet;
+
+  DataSource.DataSet := ClientDataSet;
+  DBGrid.DataSource := DataSource;
+
+  SQL;
+  calcularTotais;
+
+  DBGrid.Columns.Items[0].Visible := false;
+  DBGrid.Columns.Items[1].Title.Caption := 'Situação';
+  DBGrid.Columns.Items[2].Title.Caption := 'Descrição';
+  DBGrid.Columns.Items[3].Title.Caption := 'Data de Vencimento';
+  DBGrid.Columns.Items[4].Title.Caption := 'Valor Total';
+  DBGrid.Columns.Items[5].Title.Caption := 'Valor Pago';
+  DBGrid.Columns.Items[6].Title.Caption := 'Total a Pagar';
+  DBGrid.Columns.Items[7].Visible := false;
+//  functions.FitGrid(DBGrid);
+end;
+
+procedure TformContasPagar.SQL;
+var
+  I: Integer;
+begin
+  ClientDataSet.EmptyDataSet;
+  ClientDataSet.LoadFromJSON(HTTP.Get('http://localhost:9000/contaspagar'));
+
+
+//  while  do
+//  begin
+//    ClientDataSet.Edit;
+//    ClientDataSet.FieldByName('situacao').AsString := 'ATRASADO';
+//    ClientDataSet.Post;
+//  end;
+
+//  functions.FitGrid(DBGrid);
+end;
+
+end.

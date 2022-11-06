@@ -1,0 +1,264 @@
+unit untCadastrarEmpresa;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Mask, Vcl.ExtCtrls,
+  Vcl.Buttons, System.JSON, IdHTTP, IdSSLOpenSSL, IdTCPClient,
+  IdSSLOpenSSLHeaders, DataSet.Serialize, untEmpresas, MaskUtils, functions;
+
+type
+  TformCadastrarEmpresa = class(TForm)
+    Panel2: TPanel;
+    GroupBox1: TGroupBox;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    Panel5: TPanel;
+    Label4: TLabel;
+    Label5: TLabel;
+    GroupBox2: TGroupBox;
+    Label6: TLabel;
+    Label7: TLabel;
+    Label8: TLabel;
+    Label9: TLabel;
+    Label10: TLabel;
+    Label11: TLabel;
+    Panel1: TPanel;
+    Panel3: TPanel;
+    btnSave: TPanel;
+    btnCancel: TPanel;
+    edRazao: TEdit;
+    edFantasia: TEdit;
+    edCPF_CNPJ: TEdit;
+    edIE: TEdit;
+    edTelefone: TEdit;
+    edLogradouro: TEdit;
+    edNumero: TEdit;
+    edCidade: TEdit;
+    edBairro: TEdit;
+    edCEP: TEdit;
+    cbUF: TComboBox;
+    procedure btnSaveClick(Sender: TObject);
+    procedure btnSaveMouseEnter(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure btnSaveMouseLeave(Sender: TObject);
+    procedure btnCancelMouseEnter(Sender: TObject);
+    procedure btnCancelMouseLeave(Sender: TObject);
+    procedure edCEPChange(Sender: TObject);
+    procedure btnCancelClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure edCPF_CNPJKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure edCEPKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure edCPF_CNPJChange(Sender: TObject);
+  private
+    HTTP: TIdHTTP;
+    IdSSL: TIdSSLIOHandlerSocketOpenSSL;
+    Empresa: TEmpresa;
+    FIDAtualizarEmpresa: integer;
+    FDadosEmpresa: TJSONObject;
+    Functions: TFunctions;
+    arrayCPF_CNPJFormats: TArray<string>;
+  public
+    property IDAtualizarEmpresa: integer write FIDAtualizarEmpresa;
+    property DadosEmpresa: TJSONObject read FDadosEmpresa write FDadosEmpresa;
+  end;
+
+var
+  formCadastrarEmpresa: TformCadastrarEmpresa;
+
+implementation
+
+{$R *.dfm}
+
+procedure TformCadastrarEmpresa.btnSaveClick(Sender: TObject);
+begin
+  Empresa := TEmpresa.Create;
+
+  if (Trim(edRazao.Text) <> '') and (Trim(edFantasia.Text) <> '') and
+    (Trim(edCPF_CNPJ.Text) <> '') and (Trim(edIE.Text) <> '') and
+    (Trim(edTelefone.Text) <> '') and (Trim(edCEP.Text) <> '') and
+    (Trim(edLogradouro.Text) <> '') and (Trim(edNumero.Text) <> '') and
+    (Trim(edBairro.Text) <> '') and (Trim(edCidade.Text) <> '') and
+    (Trim(cbUF.Text) <> '') then
+  begin
+    Empresa.RazaoSocial := edRazao.Text;
+    Empresa.NomeFantasia := edFantasia.Text;
+    Empresa.CPF_CNPJ := edCPF_CNPJ.Text;
+    Empresa.InscEstadual := edIE.Text;
+    Empresa.Telefone := edTelefone.Text;
+    Empresa.CEP := edCEP.Text;
+    Empresa.Logradouro := edLogradouro.Text;
+    Empresa.Numero := StrToInt(edNumero.Text);
+    Empresa.Bairro := edBairro.Text;
+    Empresa.Cidade := edCidade.Text;
+    Empresa.UF := cbUF.Text;
+    Empresa.IDAtualizarEmpresa := FIDAtualizarEmpresa;
+
+    Application.MessageBox(PWideChar(Empresa.setDados), 'Confirmação', MB_ICONINFORMATION + MB_OK);
+
+    if Empresa.lib then
+      Self.Close;
+  end
+  else
+    Application.MessageBox('Preencha os campos vazios!', 'Aviso', MB_ICONWARNING + MB_OK);
+end;
+
+procedure TformCadastrarEmpresa.btnCancelClick(Sender: TObject);
+begin
+  Self.Close;
+  FIDAtualizarEmpresa := 0;
+end;
+
+procedure TformCadastrarEmpresa.edCEPChange(Sender: TObject);
+var
+  DadosCEP: TJSONObject;
+  CEP: string;
+begin
+  if Length(edCEP.Text) = 10 then
+  begin
+    CEP := StringReplace(edCEP.Text, '.', '', [rfReplaceAll]);
+    CEP := StringReplace(CEP, '-', '', [rfReplaceAll]);
+
+    try
+      DadosCEP := TJSONObject.ParseJSONValue(TEncoding.ASCII.GetBytes(HTTP.Get('https://viacep.com.br/ws/' + CEP + '/json')), 0) as TJSONObject;
+
+      edLogradouro.Text := DadosCEP.GetValue<string>('logradouro');
+      edBairro.Text := DadosCEP.GetValue<string>('bairro');
+      edCidade.Text := DadosCEP.GetValue<string>('localidade');
+      cbUF.ItemIndex := cbUF.Items.IndexOf(DadosCEP.GetValue<string>('uf'));
+    except
+      on E: Exception do
+        Application.MessageBox('CEP Inválido!', 'Erro', MB_ICONERROR + MB_OK);
+    end;
+  end;
+end;
+
+procedure TformCadastrarEmpresa.edCEPKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = VK_BACK then
+    exit;
+
+  case Length(edCEP.Text) of
+    2:
+      begin
+        edCEP.SetSelText('.');
+      end;
+    6:
+      begin
+        edCEP.SetSelText('-');
+      end;
+  end;
+
+  edCEP.SelStart := Length(edCEP.Text);
+end;
+
+procedure TformCadastrarEmpresa.edCPF_CNPJChange(Sender: TObject);
+var
+  cpf_cnpj: string;
+begin
+  if Length(edCPF_CNPJ.Text) = 11 then
+  begin
+    edCPF_CNPJ.Text := arrayCPF_CNPJFormats[0];
+  end;
+
+//  if Length(edCPF_CNPJ.Text) = 14 then
+//  teste := HTTP.Get('https://receitaws.com.br/v1/cnpj/' + edCPF_CNPJ.Text);
+end;
+
+procedure TformCadastrarEmpresa.edCPF_CNPJKeyDown(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+begin
+//  if Key = VK_BACK then
+//    exit;
+//
+//  case Length(edCPF_CNPJ.Text) of
+//    3:
+//      begin
+//        edCPF_CNPJ.SetSelText('.');
+//      end;
+//    7:
+//      begin
+//        edCPF_CNPJ.SetSelText('.');
+//      end;
+//    11:
+//      begin
+//        edCPF_CNPJ.SetSelText('-');
+//      end;
+//  end;
+//
+//  edCPF_CNPJ.SelStart := Length(edCPF_CNPJ.Text);
+end;
+
+procedure TformCadastrarEmpresa.FormCreate(Sender: TObject);
+var
+  UFs: TJSONArray;
+  I: integer;
+begin
+  functions := TFunctions.create;
+  UFs := TJSONArray.Create;
+  HTTP := TIdHTTP.Create(nil);
+  IdSSL := TIdSSLIOHandlerSocketOpenSSL.Create(HTTP);
+
+  IdSSL.SSLOptions.SSLVersions := [sslvSSLv23];
+  HTTP.IOHandler := IdSSL;
+
+  UFs := TJSONObject.ParseJSONValue(TEncoding.ASCII.GetBytes(HTTP.Get('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')), 0) as TJSONArray;
+
+  for I := 0 to Pred(UFs.Count) do
+  begin
+    cbUF.Items.Add(UFs.Get(I).GetValue<string>('sigla'));
+  end;
+
+//  btnSave.BorderStyle := bsNone;
+  functions.DrawControl(btnSave);
+  functions.DrawControl(btnCancel);
+
+  arrayCPF_CNPJFormats := ['###.###.###-##', '##.###.###/####-##'];
+end;
+
+procedure TformCadastrarEmpresa.FormShow(Sender: TObject);
+begin
+  if FIDAtualizarEmpresa <> 0 then
+  begin
+    edRazao.Text := FDadosEmpresa.GetValue<string>('RAZAOSOCIAL');
+    edFantasia.Text := FDadosEmpresa.GetValue<string>('NOMEFANTASIA');
+    edCPF_CNPJ.Text := FDadosEmpresa.GetValue<string>('CPF_CNPJ');
+    edIE.Text := FDadosEmpresa.GetValue<string>('INSC_ESTADUAL');
+    edTelefone.Text := FDadosEmpresa.GetValue<string>('TELEFONE');
+    edCEP.Text := FDadosEmpresa.GetValue<string>('CEP');
+    edLogradouro.Text := FDadosEmpresa.GetValue<string>('LOGRADOURO');
+    edNumero.Text := FDadosEmpresa.GetValue<string>('NUMERO');
+    edBairro.Text := FDadosEmpresa.GetValue<string>('BAIRRO');
+    edCidade.Text := FDadosEmpresa.GetValue<string>('CIDADE');
+    cbUF.ItemIndex := cbUF.Items.IndexOf(FDadosEmpresa.GetValue<string>('UF'));
+
+    FDadosEmpresa.Free;
+  end;
+end;
+
+procedure TformCadastrarEmpresa.btnCancelMouseEnter(Sender: TObject);
+begin
+  btnCancel.Color := clBlack;
+end;
+
+procedure TformCadastrarEmpresa.btnCancelMouseLeave(Sender: TObject);
+begin
+  btnCancel.Color := clRed;
+end;
+
+procedure TformCadastrarEmpresa.btnSaveMouseEnter(Sender: TObject);
+begin
+  btnSave.Color := clBlack;
+end;
+
+procedure TformCadastrarEmpresa.btnSaveMouseLeave(Sender: TObject);
+begin
+  btnSave.Color := $0007780B;
+end;
+
+end.

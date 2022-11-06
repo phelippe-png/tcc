@@ -1,0 +1,157 @@
+unit untController;
+
+interface
+
+uses
+  System.SysUtils, FireDAC.Comp.Client, untConnection, System.JSON, DataSet.Serialize,
+  System.Generics.Collections, FireDAC.DApt, FireDAC.Phys,
+  FireDAC.Phys.PG, FireDAC.Stan.Def, FireDAC.Stan.Async, FireDAC.Phys.Intf,
+  FireDAC.Stan.Pool, FireDAC.VCLUI.Wait, FireDAC.UI.Intf, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Error, Horse;
+
+type
+  TController = class(TConnection)
+  private
+    FDQuery: TFDQuery;
+    FIndexConnection: Integer;
+  public
+    function getDados(tabelaBanco: string): TFDQuery;
+    function getByID(id: integer; tabelaBanco, campo: string): TJSONValue;
+    function setDados(Dados: TJSONObject; tabelaBanco: string): string;
+    procedure updateDados(Dados: TJSONObject; id: integer; tabelaBanco: string);
+    procedure deletarDados(id: integer; tabelaBanco: string);
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+implementation
+
+constructor TController.Create;
+begin
+  FDQuery := TFDQuery.Create(nil);
+  FIndexConnection := Connect;
+  FDQuery.Connection := ConnectionList.Items[FIndexConnection];
+
+  inherited;
+end;
+
+destructor TController.Destroy;
+begin
+  Disconnect(FIndexConnection);
+
+  inherited;
+end;
+
+procedure TController.deletarDados(id: integer; tabelaBanco: string);
+begin
+  FDQuery.Close;
+  FDQuery.SQL.Clear;
+  FDQuery.SQL.Add('delete from ' + tabelaBanco + ' where id = :id');
+  FDQuery.ParamByName('id').AsInteger := id;
+  FDQuery.Execute;
+end;
+
+function TController.getDados(tabelaBanco: string): TFDQuery;
+begin
+  FDQuery.Close;
+  FDQuery.SQL.Clear;
+  FDQuery.SQL.Add('select * from ' + tabelaBanco);
+  FDQuery.Open;
+
+  Result := FDQuery;
+end;
+
+function TController.getByID(id: integer; tabelaBanco, campo: string): TJSONValue;
+var
+  I: Integer;
+begin
+  FDQuery.Close;
+  FDQuery.SQL.Clear;
+  FDQuery.SQL.Add('select * from ' + tabelaBanco + ' where ' + campo + ' = :id');
+  FDQuery.ParamByName('id').AsInteger := id;
+  FDQuery.Open;
+
+  if FDQuery.RecordCount = 1 then
+    Result := FDQuery.ToJSONObject
+  else if FDQuery.RecordCount > 1 then
+    Result := FDQuery.ToJSONArray;
+end;
+
+procedure TController.updateDados(Dados: TJSONObject; id: integer; tabelaBanco: string);
+var
+  I: integer;
+  s: string;
+begin
+  Dados.RemovePair('id');
+  Dados.RemovePair('tabelaBanco');
+
+  FDQuery.Close;
+  FDQuery.SQL.Clear;
+  FDQuery.SQL.Add('update ' + tabelaBanco + ' set ');
+
+  for I := 0 to Pred(Dados.Count) do
+  begin
+    FDQuery.SQL.Add(Dados.Get(I).JsonString.Value + ' = ' + QuotedStr(Dados.Get(I).JsonValue.Value));
+
+    s := Dados.Get(I).JsonString.Value + Dados.Get(I).JsonValue.Value;
+
+    if I < Pred(Dados.Count) then
+      FDQuery.SQL.Add(', ');
+  end;
+
+  FDQuery.SQL.Add(' where id = ' + id.ToString);
+
+  s := FDQuery.SQL.Text;
+
+  FDQuery.ExecSQL;
+end;
+
+function TController.setDados(Dados: TJSONObject; tabelaBanco: string): string;
+var
+  I: integer;
+begin
+//  Dados.RemovePair('tabelaBanco');
+
+  if tabelaBanco = 'tab_controleproducao_corpo' then
+  begin
+    FDQuery.Close;
+    FDQuery.SQL.Clear;
+    FDQuery.SQL.Add('select max(id) id from tab_controleproducao');
+    FDQuery.Open;
+
+    Dados.AddPair('id_producao', FDQuery.FieldByName('id').AsString);
+  end;
+
+  FDQuery.Close;
+  FDQuery.SQL.Clear;
+
+  try
+    FDQuery.SQL.Add('insert into ' + tabelaBanco + ' (');
+
+    for I := 0 to Pred(Dados.Count) do
+    begin
+      FDQuery.SQL.Add(Dados.Get(I).JsonString.Value);
+
+      if I < Pred(Dados.Count) then
+        FDQuery.SQL.Add(', ');
+    end;
+
+    FDQuery.SQL.Add(') values (');
+
+    for I := 0 to Pred(Dados.Count) do
+    begin
+      FDQuery.SQL.Add(QuotedStr(Dados.Get(I).JsonValue.Value));
+
+      if I < Pred(Dados.Count) then
+        FDQuery.SQL.Add(', ');
+    end;
+
+    FDQuery.SQL.Add(')');
+    FDQuery.ExecSQL;
+
+  except on E: Exception do
+    Result := E.Message;
+  end;
+end;
+
+end.

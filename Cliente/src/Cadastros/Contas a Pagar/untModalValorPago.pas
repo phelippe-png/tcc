@@ -1,0 +1,71 @@
+unit untModalValorPago;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls;
+
+type
+  TformModal = class(TForm)
+    Label1: TLabel;
+    edValor: TEdit;
+    btnCancel: TPanel;
+    btnInsert: TPanel;
+    procedure btnCancelMouseEnter(Sender: TObject);
+    procedure btnCancelMouseLeave(Sender: TObject);
+    procedure btnInsertMouseEnter(Sender: TObject);
+    procedure btnInsertMouseLeave(Sender: TObject);
+    procedure btnCancelClick(Sender: TObject);
+    procedure btnInsertClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    lib: boolean;
+  end;
+
+var
+  formModal: TformModal;
+
+implementation
+
+{$R *.dfm}
+
+procedure TformModal.btnCancelClick(Sender: TObject);
+begin
+  Self.Close;
+end;
+
+procedure TformModal.btnCancelMouseEnter(Sender: TObject);
+begin
+  btnCancel.Color := clBlack;
+end;
+
+procedure TformModal.btnCancelMouseLeave(Sender: TObject);
+begin
+  btnCancel.Color := clMaroon;
+end;
+
+procedure TformModal.btnInsertClick(Sender: TObject);
+begin
+  if Trim(edValor.Text) = '' then
+  begin
+    Application.MessageBox('Preencha o campo vazio!', 'Atenção', MB_ICONWARNING + MB_OK);
+    exit;
+  end;
+
+  lib := true;
+  Self.Close;
+end;
+
+procedure TformModal.btnInsertMouseEnter(Sender: TObject);
+begin
+  btnInsert.Color := clBlack;
+end;
+
+procedure TformModal.btnInsertMouseLeave(Sender: TObject);
+begin
+  btnInsert.Color := clGreen;
+end;
+
+end.

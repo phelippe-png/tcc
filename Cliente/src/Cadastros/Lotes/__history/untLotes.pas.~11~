@@ -1,0 +1,73 @@
+unit untLotes;
+
+interface
+
+uses
+  IdHTTP, System.JSON, System.SysUtils, System.Classes, DataSet.Serialize,
+  untEmpresas;
+
+type
+  TLotes = class
+  private
+    FIDEmpresa: integer;
+    FCodigo: integer;
+    FOP: integer;
+    FDescricao: string;
+    FEmpresa: TEmpresa;
+    FDataEntrada: TDate;
+    FDataSaida: TDate;
+    FQuantidade: integer;
+    FValorUnit: currency;
+    FValorTotal: Currency;
+    FTempoMin: Double;
+
+    HTTP: TIdHTTP;
+  public
+    property IDEmpresa: integer read FIDEmpresa write FIDEmpresa;
+    property Codigo: integer write FCodigo;
+    property OP: integer write FOP;
+    property Descricao: string write FDescricao;
+    property Empresa: TEmpresa read FEmpresa write FEmpresa;
+    property DataEntrada: TDate write FDataEntrada;
+    property DataSaida: TDate write FDataSaida;
+    property Quantidade: integer write FQuantidade;
+    property ValorUnit: currency write FValorUnit;
+    property ValorTotal: Currency write FValorTotal;
+    property TempoMin: Double write FTempoMin;
+
+    function cadastrarDados: string;
+  end;
+
+implementation
+
+function TLotes.cadastrarDados: string;
+var
+  Dados: TJSONObject;
+  ConvertJSONToStream: TStream;
+begin
+  try
+    HTTP := TIdHTTP.Create(nil);
+    Dados := TJSONObject.Create;
+
+    Dados.AddPair('id_empresa', FIDEmpresa.ToString);
+    Dados.AddPair('codigo', FCodigo.ToString);
+    Dados.AddPair('op', FOP.ToString);
+    Dados.AddPair('descricao', FDescricao);
+    Dados.AddPair('empresa', FEmpresa.RazaoSocial);
+//      Dados.AddPair('data_entrada', DateToStr(FDataEntrada));
+    Dados.AddPair('quantidade', FQuantidade.ToString);
+    Dados.AddPair('valor_unit', FormatFloat('###,##0.00', FValorUnit));
+    Dados.AddPair('valor_total', FormatFloat('###,##0.00', FValorTotal));
+    Dados.AddPair('tempo_min', FormatFloat('##0.0000', FTempoMin));
+
+    ConvertJSONToStream := TStringStream.Create(Dados.ToJSON);
+
+    HTTP.Request.ContentType := 'application/json';
+    HTTP.Post('http://localhost:9000/lotes/inserir', ConvertJSONToStream);
+    Result := 'Lote cadastrado com sucesso.';
+  except
+    result := 'Erro!';
+  end;
+end;
+
+end.

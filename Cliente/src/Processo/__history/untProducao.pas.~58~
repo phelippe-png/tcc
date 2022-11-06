@@ -1,0 +1,188 @@
+unit untProducao;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, Vcl.Grids, Vcl.DBGrids,
+  Vcl.StdCtrls, Vcl.ExtCtrls, untCadastrarProducao, Datasnap.DBClient, IdHTTP, DataSet.Serialize,
+  functions, System.JSON;
+
+type
+  TformListarProducoes = class(TForm)
+    Panel1: TPanel;
+    pnlHeader: TPanel;
+    lblTitle: TLabel;
+    btnAdd: TPanel;
+    pnlContainer: TPanel;
+    line: TPanel;
+    Panel2: TPanel;
+    Panel4: TPanel;
+    Label4: TLabel;
+    lblQuantidade: TLabel;
+    Label8: TLabel;
+    lblValorTotal: TLabel;
+    lblTempo: TLabel;
+    Label11: TLabel;
+    DBGrid: TDBGrid;
+    Label1: TLabel;
+    procedure btnAddClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure DBGridDrawColumnCell(Sender: TObject; const Rect: TRect;
+      DataCol: Integer; Column: TColumn; State: TGridDrawState);
+    procedure DBGridDblClick(Sender: TObject);
+  private
+    http: TIdHTTP;
+    formCadastrar: TformCadastrarProducao;
+    DataSource: TDataSource;
+    ClientDataSet: TClientDataSet;
+    functions: TFunctions;
+
+    procedure SQL;
+    procedure inserirSituacao;
+    procedure editarTitlesDBGrid;
+  public
+    { Public declarations }
+  end;
+
+var
+  formListarProducoes: TformListarProducoes;
+
+implementation
+
+{$R *.dfm}
+
+procedure TformListarProducoes.btnAddClick(Sender: TObject);
+begin
+  formCadastrar := TformCadastrarProducao.Create(Self);
+  formCadastrar.ShowModal;
+
+  SQL;
+end;
+
+procedure TformListarProducoes.DBGridDblClick(Sender: TObject);
+var
+  jsonDados: TJSONObject;
+begin
+  formCadastrar := TformCadastrarProducao.Create(Self);
+
+  jsonDados := TJSONObject.Create;
+  jsonDados.AddPair('id', ClientDataSet.FieldByName('id').AsString);
+  jsonDados.AddPair('id_empresa', ClientDataSet.FieldByName('id_empresa').AsString);
+  jsonDados.AddPair('data_inicio', ClientDataSet.FieldByName('data_inicio').AsString);
+  jsonDados.AddPair('data_final', ClientDataSet.FieldByName('data_final').AsString);
+  
+  formCadastrar.carregarDados(jsonDados);
+  formCadastrar.ShowModal;
+end;
+
+procedure TformListarProducoes.DBGridDrawColumnCell(Sender: TObject;
+  const Rect: TRect; DataCol: Integer; Column: TColumn; State: TGridDrawState);
+begin
+  if (ClientDataSet.FieldByName('data_final').AsDateTime > Date) and (Column.FieldName = 'situacao') then
+  begin
+    DBGrid.Canvas.Brush.Color := $00FF9135;
+    DBGrid.DefaultDrawDataCell(Rect, Column.Field, State);
+  end;
+
+  if (ClientDataSet.FieldByName('data_final').AsDateTime < Date) and (Column.FieldName = 'situacao') then
+  begin
+    DBGrid.Canvas.Brush.Color := clRed;
+    DBGrid.DefaultDrawDataCell(Rect, Column.Field, State);
+  end;
+
+  if (ClientDataSet.FieldByName('data_final').AsDateTime = Date) and (Column.FieldName = 'situacao') then
+  begin
+    DBGrid.Canvas.Brush.Color := clWebOrange;
+    DBGrid.DefaultDrawDataCell(Rect, Column.Field, State);
+  end;
+end;
+
+procedure TformListarProducoes.editarTitlesDBGrid;
+begin
+  DBGrid.Columns.Items[0].Title.Caption := 'Situação';
+  DBGrid.Columns.Items[1].Title.Caption := 'Empresa';
+  DBGrid.Columns.Items[2].Title.Caption := 'Data de Início';
+  DBGrid.Columns.Items[3].Title.Caption := 'Data Final';
+  DBGrid.Columns.Items[4].Title.Caption := 'Status';
+  DBGrid.Columns.Items[5].Title.Caption := 'Quantidade Total';
+  DBGrid.Columns.Items[6].Title.Caption := 'Quantidade a Produzir';
+  DBGrid.Columns.Items[7].Title.Caption := 'Valor Total';
+  DBGrid.Columns.Items[8].Title.Caption := 'Tempo Total';
+end;
+
+procedure TformListarProducoes.FormCreate(Sender: TObject);
+begin
+  http := TIdHTTP.Create(nil);
+  DataSource := TDataSource.Create(Self);
+  functions := TFunctions.Create;
+
+  ClientDataSet := TClientDataSet.Create(Self);
+  ClientDataSet.FieldDefs.Add('situacao', ftString, 20);
+  ClientDataSet.FieldDefs.Add('id', ftInteger);
+  ClientDataSet.FieldDefs.Add('id_empresa', ftInteger);
+  ClientDataSet.FieldDefs.Add('empresa', ftString, 50);
+  ClientDataSet.FieldDefs.Add('data_inicio', ftDate);
+  ClientDataSet.FieldDefs.Add('data_final', ftDate);
+  ClientDataSet.FieldDefs.Add('status', ftString, 20);
+  ClientDataSet.FieldDefs.Add('quantidade_total', ftInteger);
+  ClientDataSet.FieldDefs.Add('quantidade_produzir', ftInteger);
+  ClientDataSet.FieldDefs.Add('valor_total', ftCurrency);
+  ClientDataSet.FieldDefs.Add('tempo_total', ftCurrency);
+  ClientDataSet.CreateDataSet;
+
+  ClientDataSet.FieldByName('id').Visible := false;
+  ClientDataSet.FieldByName('id_empresa').Visible := false;
+
+  DataSource.DataSet := ClientDataSet;
+  DBGrid.DataSource := DataSource;
+
+  editarTitlesDBGrid;
+  SQL;
+end;
+
+procedure TformListarProducoes.inserirSituacao;
+begin
+  ClientDataSet.First;
+
+  while not ClientDataSet.Eof do
+  begin
+    if ClientDataSet.FieldByName('data_final').AsDateTime > Date then
+    begin
+      ClientDataSet.Edit;
+      ClientDataSet.FieldByName('situacao').AsString := 'OK';
+      ClientDataSet.Post;
+    end;
+  
+    if ClientDataSet.FieldByName('data_final').AsDateTime < Date then
+    begin
+      ClientDataSet.Edit;
+      ClientDataSet.FieldByName('situacao').AsString := 'ATRASADO';
+      ClientDataSet.Post;
+    end;
+
+    if ClientDataSet.FieldByName('data_final').AsDateTime = Date then
+    begin
+      ClientDataSet.Edit;
+      ClientDataSet.FieldByName('situacao').AsString := 'VENCE HOJE';
+      ClientDataSet.Post;
+    end;
+
+    ClientDataSet.Next;
+  end;
+end;
+
+procedure TformListarProducoes.SQL;
+var
+  stream: TStream;
+begin
+  stream := TStringStream.Create('tab_controleproducao');
+
+  ClientDataSet.EmptyDataSet;
+  ClientDataSet.LoadFromJSON(http.Get('http://localhost:9000/producoes'), stream);
+
+  inserirSituacao;
+  functions.FitGrid(DBGrid);
+end;
+
+end.
